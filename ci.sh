@@ -18,10 +18,10 @@ function git_config(){
     if [ $retVal -ne 0 ]; then
       gh auth login --with-token <<< $GITHUB_TOKEN 
     fi
-    if [ $(git config --global --list | grep -c user) != 2 ]; 
+    if [ -n "$HOME/.gitconfig" ]; 
     then
-      printf "User EMail : " && read -r USER_EMAIL
-      printf "User ID : " && read -r USER_ID
+      # printf "User EMail : " && read -r USER_EMAIL
+      # printf "User ID : " && read -r USER_ID
       git config --global user.email "$USER_EMAIL"
       git config --global user.name "$USER_ID"
     fi 
@@ -124,7 +124,7 @@ function shell(){
           --hostname $APP_NAME \
           -v $(pwd):$(pwd) -w $(pwd) \
           -v /var/run/docker.sock:/var/run/docker.sock  \
-          $CONTAINER 
+          $CONTAINER sh -c "./ci.sh git-config"
   return 0
 }
 
@@ -159,26 +159,29 @@ opt="$1"
 choice=$( tr '[:upper:]' '[:lower:]' <<<"$opt" )
 load_config 
 case $choice in
+    git-config)
+      git_config
+    ;;
     build)
       echo -e "\nBuild Container"
       build || echo "Docker Build Failed"
-      ;;
+    ;;
     shell)
       echo "Run  Container"
       shell || echo "Docker Run Failed"
-      ;;
+    ;;
     e2e)
       echo "Test  Container"
       build > /dev/null 2>&1 # Build ci-shell
       run_ci_shell_e2e_tests 
       run_dev_container_e2e_tests  # e2e Test devcontainer within ci-shell
       clean
-      ;;
+    ;;
     clean)
       clean
-      ;;
+    ;;
     *)
-    echo "${RED}Usage: ci.sh < build | shell | teardown | e2e >[-d]${NC}"
+    echo "${RED}Usage: ci.sh  (build | shell | teardown | e2e) [-d]${NC}"
 cat <<-EOF
 Commands:
 ---------
