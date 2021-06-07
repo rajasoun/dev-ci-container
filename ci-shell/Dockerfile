@@ -6,7 +6,8 @@ ENV HOME /home/$USER
 RUN set -ex \
     && apk add --no-cache --update sudo bash bash-completion \
        git vim zsh-autosuggestions zsh-syntax-highlighting bind-tools curl  \
-       python3 binutils-dev curl-dev elfutils-libelf jq libc6-compat netcat-openbsd \
+       python3 build-base musl py3-pip python3-dev binutils-dev curl-dev elfutils-libelf \
+       jq libc6-compat netcat-openbsd \
     && rm -rf /var/cache/apk/*
 
 # add new user
@@ -36,6 +37,12 @@ ENV GH_CLI=https://github.com/cli/cli/releases/download/v1.10.3/gh_1.10.3_linux_
 RUN set -ex \
     && wget -q $GH_CLI -O - | tar xz -C ./ --strip-components 1
 
+# node.js packages
+FROM node:alpine as node
+RUN set -ex \
+    && npm install -g npm@7.16.0 \
+    && npm install -g husky commitizen commitlint release-it
+
 # ci-shell
 FROM base
 USER $USER
@@ -63,6 +70,16 @@ COPY --from=kcov /usr/local/share/doc/kcov /usr/local/share/doc/kcovub
 COPY --from=gh-cli /root/bin/gh /usr/local/bin/
 COPY --from=gh-cli /root/share  /usr/local/share/
 
+# node.js
+COPY --from=node /usr/local/ /usr/local
+
+# python packages
+RUN set -ex \
+    && python3 -m pip install --user pipx \
+    && python3 -m pipx ensurepath \
+    && pipx install pre-commit \
+    && pip install cruft ggshield
+
 WORKDIR /workspaces
-ENTRYPOINT /bin/zsh
+# ENTRYPOINT /bin/zsh
 CMD /bin/zsh "$@"
