@@ -150,7 +150,7 @@ function run_dev_container_e2e_tests(){
   return 0
 }
 
-function clean(){
+function teardown(){
   echo  "Clean Container"
   docker rmi "$CONTAINER" 
 }
@@ -175,10 +175,10 @@ case $choice in
       build > /dev/null 2>&1 # Build ci-shell
       run_ci_shell_e2e_tests 
       run_dev_container_e2e_tests  # e2e Test devcontainer within ci-shell
-      clean
+      teardown
     ;;
-    clean)
-      clean
+    teardown)
+      teardown
     ;;
     *)
     echo "${RED}Usage: ci.sh  (build | shell | teardown | e2e) [-d]${NC}"
