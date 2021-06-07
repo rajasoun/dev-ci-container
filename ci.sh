@@ -114,7 +114,6 @@ function build(){
       -t "$CONTAINER" \
       --build-arg GIT_COMMIT="$GIT_COMMIT" \
       "$BUILD_CONTEXT"
-  #git_tag_version
   return 0
 }
 
