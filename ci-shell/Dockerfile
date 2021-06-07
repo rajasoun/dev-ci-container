@@ -33,7 +33,7 @@ RUN set -ex \
 # gh-cli
 FROM alpine:latest as gh-cli
 WORKDIR /root
-ENV GH_CLI=https://github.com/cli/cli/releases/download/v1.10.3/gh_1.10.3_linux_amd64.tar.gz
+ENV GH_CLI=https://github.com/cli/cli/releases/download/v1.11.0/gh_1.11.0_linux_amd64.tar.gz
 RUN set -ex \
     && wget -q $GH_CLI -O - | tar xz -C ./ --strip-components 1
 
