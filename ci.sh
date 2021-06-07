@@ -19,10 +19,9 @@ function git_bump(){
     git tag -a "v$newv" -m "version $newv"
     git push --follow-tags
 
-    #docker run --rm -i -v $PWD:/app -w /app treeder/bump --filename .version --replace $VERSION
-    echo "VERSION=\
-      $(git tag --sort=-v:refname --list "v[0-9]*" \
-      | head -n 1 | cut -c 2-)" >> .version
+    #docker run --rm -i -v $PWD:/app -w /app treeder/bump --filename .version --replace $$newv
+    echo "VERSION=$(git tag --sort=-v:refname --list "v[0-9]*" \
+                  | head -n 1 | cut -c 2-)" >> .version
 }
 
 function git_tag_version(){
