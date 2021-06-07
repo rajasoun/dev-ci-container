@@ -1,12 +1,6 @@
 {
-  "git": {
-    "commitMessage": "chore: release %s",
-    "changelog": "git log --pretty=format:'* %s (%h)' [REV_RANGE]",
-    "tagName": "v%s"
-  },
   "github": {
     "release": true,
-    "releaseName": "Release %s",
     "tokenRef": "GITHUB_TOKEN"
   }
 }
