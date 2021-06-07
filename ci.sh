@@ -31,6 +31,13 @@ function git_tag_version(){
   git_bump
 }
 
+function git_delete_latest_tag(){
+  git fetch --tags # checkout action does not get these
+  current_tag=$(git tag --sort=-v:refname --list "v[0-9]*" | head -n 1)
+  echo "current_tag: $current_tag"
+  git tag --list "$current_tag" | xargs -I % echo "git tag -d %; git push --delete origin %" | sh
+}
+
 # Load configs by convention
 function load_config(){
     load_config_from_dotenv
