@@ -18,7 +18,7 @@ function git_config(){
     if [ $retVal -ne 0 ]; then
       gh auth login --with-token <<< $GITHUB_TOKEN 
     fi
-    if [ -n "$HOME/.gitconfig" ]; 
+    if [ ! -f "$HOME/.gitconfig" ]; 
     then
       # printf "User EMail : " && read -r USER_EMAIL
       # printf "User ID : " && read -r USER_ID
@@ -120,22 +120,22 @@ function build(){
 function shell(){
   _docker run \
           --rm -it \
-          --name $APP_NAME \
-          --hostname $APP_NAME \
-          -v $(pwd):$(pwd) -w $(pwd) \
+          --name "$APP_NAME" \
+          --hostname "$APP_NAME" \
+          -v "$(pwd):$(pwd)" -w "$(pwd)" \
           -v /var/run/docker.sock:/var/run/docker.sock  \
-          $CONTAINER sh -c "./ci.sh git-config"
+          "$CONTAINER" 
   return 0
 }
 
 function run_ci_shell_e2e_tests(){
   _docker run \
           --rm \
-          --name $APP_NAME \
-          --hostname $APP_NAME \
-          -v $(pwd):$(pwd) -w $(pwd) \
+          --name "$APP_NAME" \
+          --hostname "$APP_NAME" \
+          -v "$(pwd):$(pwd)" -w "$(pwd)" \
           -v /var/run/docker.sock:/var/run/docker.sock  \
-          $CONTAINER sh -c "shellspec -c ci-shell/spec --tag ci-build"
+          "$CONTAINER" sh -c "shellspec -c ci-shell/spec --tag ci-build"
   return 0
 }
 
