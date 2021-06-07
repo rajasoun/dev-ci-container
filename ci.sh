@@ -113,7 +113,7 @@ function build(){
       -f "ci-shell/Dockerfile" \
       -t "$CONTAINER" \
       --build-arg GIT_COMMIT="$GIT_COMMIT" \
-      "$BUILD_CONTEXT"
+      "$BUILD_CONTEXT" 
   return 0
 }
 
@@ -125,6 +125,28 @@ function shell(){
           -v $(pwd):$(pwd) -w $(pwd) \
           -v /var/run/docker.sock:/var/run/docker.sock  \
           $CONTAINER 
+  return 0
+}
+
+function run_ci_shell_e2e_tests(){
+  _docker run \
+          --rm \
+          --name $APP_NAME \
+          --hostname $APP_NAME \
+          -v $(pwd):$(pwd) -w $(pwd) \
+          -v /var/run/docker.sock:/var/run/docker.sock  \
+          $CONTAINER sh -c "shellspec -c ci-shell/spec --tag ci-build"
+  return 0
+}
+
+function run_dev_container_e2e_tests(){
+  _docker run \
+          --rm \
+          --name $APP_NAME \
+          --hostname $APP_NAME \
+          -v $(pwd):$(pwd) -w $(pwd) \
+          -v /var/run/docker.sock:/var/run/docker.sock  \
+          $CONTAINER sh -c "ci-shell/dev.sh e2e "
   return 0
 }
 
@@ -147,9 +169,9 @@ case $choice in
       ;;
     e2e)
       echo "Test  Container"
-      build # Build ci-shell
-      shell && shellspec -c ci-shell/spec --tag ci-build
-      ci-shell/dev.sh e2e # e2e Test devcontainer within ci-shell
+      build > /dev/null 2>&1 # Build ci-shell
+      run_ci_shell_e2e_tests 
+      run_dev_container_e2e_tests  # e2e Test devcontainer within ci-shell
       clean
       ;;
     clean)
