@@ -1,41 +1,51 @@
 #!/usr/bin/env bash
 
-function git_bump(){
-    set -e
-
-    git fetch --tags # checkout action does not get these
-    oldv=$(git tag --sort=-v:refname --list "v[0-9]*" | head -n 1)
-    echo "oldv: $oldv"
-
-    # if there is no version tag yet, let's start at 0.0.0
-    if [ -z "$oldv" ]; then
-    echo "No existing version, starting at 0.0.0"
-    oldv="0.0.0"
+# Load env variables 
+function load_config_from_dotenv(){
+    CONFIG_FILE=".env"
+    if [ -f "$CONFIG_FILE" ]
+    then
+        export $(echo $(cat "$CONFIG_FILE" | sed 's/#.*//g' | sed 's/\r//g' | xargs))
+        #export $(echo $(cat "$CONFIG_FILE" | sed 's/#.*//g' | sed 's/\r//g' | xargs) | envsubst)
     fi
-
-    newv=$(docker run --rm -v "$PWD":/app treeder/bump --input "$oldv" patch)
-    echo "newv: $newv"
-
-    git tag -a "v$newv" -m "version $newv"
-    git push --follow-tags
-
-    #docker run --rm -i -v $PWD:/app -w /app treeder/bump --filename .version --replace $$newv
-    echo "VERSION=$(git tag --sort=-v:refname --list "v[0-9]*" \
-                  | head -n 1 | cut -c 2-)" >> .version
+    return 0
 }
 
-function git_tag_version(){
-  git config --global user.email "rajasoun@cisco.com"
-  git config --global user.name "Raja"
-  git fetch --tags
-  git_bump
+function git_config(){
+    load_config_from_dotenv
+    gh auth status --hostname $GH_HOST
+    retVal=$?
+    if [ $retVal -ne 0 ]; then
+      gh auth login --with-token <<< $GITHUB_TOKEN 
+    fi
+    if [ $(git config --global --list | grep -c user) != 2 ]; 
+    then
+      printf "User EMail : " && read -r USER_EMAIL
+      printf "User ID : " && read -r USER_ID
+      git config --global user.email "$USER_EMAIL"
+      git config --global user.name "$USER_ID"
+    fi 
 }
 
-function git_delete_latest_tag(){
+function delete_all_releases_tags(){
+    # Delete all Release
+    list=$(gh release list | sed 's/|/ /' | awk '{print $2}')
+    for line in $list;
+    do
+      gh release delete -y "$line"; 
+    done
+    # Delete all remote tags
+    git tag -l | xargs -n 1 git push --delete origin
+    # Delete local tags
+    git tag | xargs git tag -d
+}
+
+function git_delete_latest_release_tag(){
   git fetch --tags # checkout action does not get these
-  current_tag=$(git tag --sort=-v:refname --list "v[0-9]*" | head -n 1)
+  current_tag=$(git tag --sort=-v:refname --list  | head -n 1)
   echo "current_tag: $current_tag"
   git tag --list "$current_tag" | xargs -I % echo "git tag -d %; git push --delete origin %" | sh
+  gh release delete -y "$current_tag"
 }
 
 # Load configs by convention
@@ -47,16 +57,6 @@ function load_config(){
     CONTAINER="$APP_NAME"
     BUILD_CONTEXT="."
     export APP_NAME CONTAINER BUILD_CONTEXT
-}
-
-# Load env variables 
-function load_config_from_dotenv(){
-    CONFIG_FILE=".env"
-    if [ -f "$CONFIG_FILE" ]
-    then
-        export $(echo $(cat "$CONFIG_FILE" | sed 's/#.*//g' | sed 's/\r//g' | xargs) | envsubst)
-    fi
-    return 0
 }
 
 # Replace a line of text that matches the given regular expression in a file with the given replacement.
