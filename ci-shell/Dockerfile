@@ -79,10 +79,7 @@ COPY --from=node /usr/local/ /usr/local
 
 # python packages
 RUN set -ex \
-    && python3 -m pip install --user pipx \
-    && python3 -m pipx ensurepath \
-    && pipx install pre-commit \
-    && pip install cruft ggshield
+    && pip install cruft ggshield pipx pre-commit
 
 # Theme Dot Files
 RUN set -ex \
