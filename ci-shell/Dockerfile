@@ -3,6 +3,9 @@ FROM docker:19.03.15-dind AS base
 ARG USER=ci-shell
 ENV TZ=Asia/Kolkata
 ENV HOME=/home/$USER
+ENV HOSTNAME="ci-shell"
+ENV ZSH_THEME="powerlevel10k/powerlevel10k"
+
 
 RUN set -ex \
     && apk add --no-cache --update sudo bash bash-completion \
@@ -91,10 +94,6 @@ RUN set -ex \
 COPY ci-shell/dotfiles/.p10k.zsh $HOME/.p10k.zsh
 
 WORKDIR /workspaces
-
-ENV HOSTNAME="ci-shell" \
-    ZSH_THEME="powerlevel10k/powerlevel10k"
-    #ZSH_THEME="robbyrussell"
 
 # ENTRYPOINT /bin/zsh
 CMD /bin/zsh "$@"
