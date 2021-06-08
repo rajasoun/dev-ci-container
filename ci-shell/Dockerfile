@@ -1,13 +1,14 @@
 # base
 FROM docker:19.03.15-dind AS base
 ARG USER=ci-shell
-ENV HOME /home/$USER
+ENV TZ=Asia/Kolkata
+ENV HOME=/home/$USER
 
 RUN set -ex \
     && apk add --no-cache --update sudo bash bash-completion \
        git vim zsh-autosuggestions zsh-syntax-highlighting bind-tools curl  \
        python3 build-base musl py3-pip python3-dev binutils-dev curl-dev elfutils-libelf \
-       jq libc6-compat netcat-openbsd \
+       jq libc6-compat netcat-openbsd tzdata \
     && rm -rf /var/cache/apk/*
 
 # add new user
@@ -90,5 +91,10 @@ RUN set -ex \
 COPY ci-shell/dotfiles/.p10k.zsh $HOME/.p10k.zsh
 
 WORKDIR /workspaces
+
+ENV HOSTNAME="ci-shell" \
+    ZSH_THEME="powerlevel10k/powerlevel10k"
+    #ZSH_THEME="robbyrussell"
+
 # ENTRYPOINT /bin/zsh
 CMD /bin/zsh "$@"
