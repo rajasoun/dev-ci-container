@@ -10,5 +10,5 @@ docker run --rm -it \
     -v "$(pwd):$(pwd)" \
     -v /var/run/docker.sock:/var/run/docker.sock  \
     -w "$(pwd)"  \
-    rajasoun/ci-shell
+    rajasoun/ci-shell:latest
 ```
